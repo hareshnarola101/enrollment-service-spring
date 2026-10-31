@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: enrollment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/enrollment}
+    username: ${DB_USERNAME:enrollment}
+    password: ${DB_PASSWORD:enrollment}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        # Fail fast when Kafka is down so the outbox relay gives up and retries later,
+        # instead of holding its database transaction open for the client default of 60s.
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10000
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  kafka:
+    enrollment-events-topic: enrollment.events
+  outbox:
+    batch-size: 100
+    poll-interval: 500ms
+    send-timeout: 10s
+  security:
+    jwt:
+      # DEV ONLY default. Set JWT_SECRET (32+ random bytes) in any shared or production environment.
+      secret: ${JWT_SECRET:dev-only-jwt-secret-do-not-use-in-production}
+      ttl: 1h
+      issuer: enrollment-service
+  # Optional first admin account; leave empty to skip. docker-compose.yml sets dev values.
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
