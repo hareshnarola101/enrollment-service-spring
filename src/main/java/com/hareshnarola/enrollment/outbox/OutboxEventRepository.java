@@ -1,8 +1,6 @@
 package com.hareshnarola.enrollment.outbox;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,8 +20,6 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> 
             for update skip locked
             """, nativeQuery = true)
     List<OutboxEvent> lockNextUnpublished(@Param("limit") int limit);
-
-    Optional<OutboxEvent> findByEventId(UUID eventId);
 
     List<OutboxEvent> findByAggregateTypeAndAggregateIdOrderById(String aggregateType, String aggregateId);
 }
