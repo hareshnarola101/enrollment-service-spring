@@ -1,0 +1,10 @@
+app:
+  outbox:
+    poll-interval: 200ms
+  bootstrap-admin:
+    email: admin@test.local
+    password: admin-password-123
+
+logging:
+  level:
+    org.apache.kafka: WARN
